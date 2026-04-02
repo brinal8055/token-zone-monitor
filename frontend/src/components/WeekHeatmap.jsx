@@ -35,6 +35,8 @@ export default function WeekHeatmap({ etDate }) {
         return { zone, config: ZONE_CONFIG[zone] };
       })
     );
+  // TIME_SLOTS, DAY_LABELS, ZONE_CONFIG, getZoneForCell are module-level constants — stable references
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -94,14 +96,14 @@ export default function WeekHeatmap({ etDate }) {
                 <span className="text-xs font-mono text-zinc-600">{slot.label}</span>
               </div>
               {/* Cells */}
-              {DAY_LABELS.map((_, dayIdx) => {
+              {DAY_LABELS.map((dayLabel, dayIdx) => {
                 const { zone, config } = grid[rowIdx][dayIdx];
                 const isNow = dayIdx === currentDay && rowIdx === currentSlotIdx;
                 return (
                   <div
-                    key={dayIdx}
+                    key={dayLabel}
                     className="h-7 cursor-pointer relative"
-                    onMouseEnter={() => setTooltip({ day: DAY_LABELS[dayIdx], slot, zone })}
+                    onMouseEnter={() => setTooltip({ day: dayLabel, slot, zone })}
                     onMouseLeave={() => setTooltip(null)}
                     data-testid={isNow ? 'heatmap-now-cell' : undefined}
                     style={{

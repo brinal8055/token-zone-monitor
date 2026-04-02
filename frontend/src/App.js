@@ -22,6 +22,9 @@ export default function App() {
   const prevZoneRef = useRef(zone);
 
   // 1-second clock tick + zone refresh
+  // All referenced values (getETDate, getZone, etc.) are module-level stable imports.
+  // The interval must not restart on every render — empty dep array is intentional.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const tick = () => {
       const now = getETDate();
@@ -51,10 +54,12 @@ export default function App() {
     return () => clearInterval(id);
   }, []);
 
+  // MODELS is a module-level constant (stable). setProvider/setModel are stable React setters.
   const handleProviderChange = useCallback((p) => {
     setProvider(p);
     const firstModel = MODELS[p]?.[0];
     if (firstModel) setModel(firstModel);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clockStr = etDate.toLocaleTimeString('en-US', {

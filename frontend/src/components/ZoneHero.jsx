@@ -3,12 +3,13 @@ import { ZONE_CONFIG } from '../lib/modelData';
 
 const RADIUS = 76;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const TICK_ANGLES = [0, 90, 180, 270];
 
 export default function ZoneHero({ zone, etDate, transition }) {
   const config = ZONE_CONFIG[zone] || ZONE_CONFIG.offpeak;
   const arcLength = (config.score / 100) * CIRCUMFERENCE;
 
-  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const dayName = DAYS[etDate.getDay()];
   const isWeekend = etDate.getDay() === 0 || etDate.getDay() === 6;
 
@@ -79,13 +80,13 @@ export default function ZoneHero({ zone, etDate, transition }) {
           {/* Subtle inner glow */}
           <circle cx="100" cy="100" r="64" fill={config.bgGlow} />
           {/* Tick marks at transitions */}
-          {[0, 90, 180, 270].map((angle, i) => {
+          {TICK_ANGLES.map((angle) => {
             const rad = (angle - 90) * Math.PI / 180;
             const x1 = 100 + 70 * Math.cos(rad);
             const y1 = 100 + 70 * Math.sin(rad);
             const x2 = 100 + 78 * Math.cos(rad);
             const y2 = 100 + 78 * Math.sin(rad);
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#3f3f46" strokeWidth="2" />;
+            return <line key={angle} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#3f3f46" strokeWidth="2" />;
           })}
         </svg>
 

@@ -10,6 +10,17 @@ const HOUR_LABELS = [
   '12p','1p','2p','3p','4p','5p','6p','7p','8p','9p','10p','11p',
 ];
 
+// Extracted chart constants — prevents new object refs on every render
+const CHART_MARGIN = { top: 4, right: 4, left: -28, bottom: 0 };
+const XAXIS_TICK = { fontSize: 10, fill: '#52525b', fontFamily: 'Space Mono, monospace' };
+const XAXIS_LINE = { stroke: '#27272a' };
+const YAXIS_TICK = { fontSize: 9, fill: '#52525b', fontFamily: 'Space Mono, monospace' };
+const YAXIS_DOMAIN = [0, 100];
+const YAXIS_TICKS = [20, 55, 90];
+const TOOLTIP_CURSOR = { fill: 'rgba(255,255,255,0.03)' };
+const BAR_RADIUS = [1, 1, 0, 0];
+const yAxisFormatter = (v) => v === 20 ? 'LOW' : v === 55 ? 'MED' : 'HIGH';
+
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const { zone, label } = payload[0].payload;
@@ -45,6 +56,8 @@ export default function HourChart({ etDate }) {
         isCurrent: hour === currentHour,
       };
     });
+  // HOUR_LABELS, ZONE_CONFIG, getZone are module-level constants — stable, won't cause re-runs
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentHour, isWeekend]);
 
   return (
@@ -69,24 +82,24 @@ export default function HourChart({ etDate }) {
         </div>
       </div>
       <ResponsiveContainer width="100%" height={140}>
-        <BarChart data={data} margin={{ top: 4, right: 4, left: -28, bottom: 0 }} barCategoryGap="12%">
+        <BarChart data={data} margin={CHART_MARGIN} barCategoryGap="12%">
           <CartesianGrid vertical={false} stroke="#27272a" strokeDasharray="3 0" />
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 10, fill: '#52525b', fontFamily: 'Space Mono, monospace' }}
+            tick={XAXIS_TICK}
             tickLine={false}
-            axisLine={{ stroke: '#27272a' }}
+            axisLine={XAXIS_LINE}
             interval={2}
           />
           <YAxis
-            tick={{ fontSize: 9, fill: '#52525b', fontFamily: 'Space Mono, monospace' }}
+            tick={YAXIS_TICK}
             tickLine={false}
             axisLine={false}
-            domain={[0, 100]}
-            ticks={[20, 55, 90]}
-            tickFormatter={(v) => v === 20 ? 'LOW' : v === 55 ? 'MED' : 'HIGH'}
+            domain={YAXIS_DOMAIN}
+            ticks={YAXIS_TICKS}
+            tickFormatter={yAxisFormatter}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+          <Tooltip content={<CustomTooltip />} cursor={TOOLTIP_CURSOR} />
           <ReferenceLine
             x={HOUR_LABELS[currentHour]}
             stroke="#ffffff"
@@ -94,7 +107,7 @@ export default function HourChart({ etDate }) {
             strokeDasharray="4 3"
             opacity={0.3}
           />
-          <Bar dataKey="value" radius={[1, 1, 0, 0]}>
+          <Bar dataKey="value" radius={BAR_RADIUS}>
             {data.map((entry) => (
               <Cell
                 key={`cell-${entry.hour}`}
