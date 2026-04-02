@@ -1,0 +1,139 @@
+{
+  "theme_and_archetype": {
+    "theme": "dark",
+    "archetype": "Archetype 7: Retro-Futurism / Terminal Technical",
+    "rationale": "A developer-focused API timing dashboard demands a high-contrast, data-dense, technical aesthetic. 'Control Room' density with stark monospace stats and status-driven neon accents."
+  },
+  "typography": {
+    "ui_font": {
+      "family": "DM Sans",
+      "css_class": "font-sans",
+      "usage": "Headers, labels, navigation, standard text.",
+      "weights": ["400", "500", "700"]
+    },
+    "data_font": {
+      "family": "Space Mono",
+      "css_class": "font-mono",
+      "usage": "All numbers, stats, live clocks, code, table data, chart axes, countdowns.",
+      "weights": ["400", "700"]
+    },
+    "hierarchy_rules": [
+      "H1 (Hero/Header): text-3xl md:text-4xl tracking-tight font-bold",
+      "H2 (Cards/Widgets): text-sm tracking-[0.2em] uppercase text-zinc-400",
+      "Data/Stats: text-3xl md:text-5xl font-mono text-zinc-50 tabular-nums tracking-tighter",
+      "Body/Table: text-sm font-mono text-zinc-300"
+    ]
+  },
+  "color_palette": {
+    "background": {
+      "main": "#050505",
+      "panel": "#0a0a0b",
+      "border": "#27272a",
+      "hover": "#18181b"
+    },
+    "text": {
+      "primary": "#f8fafc",
+      "secondary": "#a1a1aa",
+      "muted": "#52525b"
+    },
+    "status_zones": {
+      "off_peak": {
+        "name": "OFF-PEAK",
+        "color": "#22c55e",
+        "bg_glow": "rgba(34, 197, 94, 0.1)",
+        "border": "rgba(34, 197, 94, 0.4)",
+        "text_glow": "drop-shadow(0 0 8px rgba(34,197,94,0.6))"
+      },
+      "moderate": {
+        "name": "MODERATE",
+        "color": "#f59e0b",
+        "bg_glow": "rgba(245, 158, 11, 0.1)",
+        "border": "rgba(245, 158, 11, 0.4)",
+        "text_glow": "drop-shadow(0 0 8px rgba(245,158,11,0.6))"
+      },
+      "peak": {
+        "name": "PEAK",
+        "color": "#ef4444",
+        "bg_glow": "rgba(239, 68, 68, 0.1)",
+        "border": "rgba(239, 68, 68, 0.4)",
+        "text_glow": "drop-shadow(0 0 8px rgba(239,68,68,0.6))"
+      }
+    }
+  },
+  "surface_and_textures": {
+    "strategy": "Grid Borders (The 'Technical' Look).",
+    "cards": "bg-[#0a0a0b] border border-zinc-800 rounded-none shadow-none.",
+    "hover_effects": "Interactive elements should not have soft shadows; instead, use sharp 1px border highlights or solid color fills.",
+    "hero_panel": "The active zone panel should have a radial gradient background originating from the center (using the active zone's bg_glow) to simulate a radar/terminal glow."
+  },
+  "layout_and_spacing": {
+    "grid_system": "MODE B: The 'Control Room' Grid.",
+    "container": "min-h-screen bg-[#050505] p-4 md:p-8 text-zinc-100 flex flex-col gap-6",
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-12 gap-6",
+    "bento_spans": {
+      "hero_panel": "col-span-1 md:col-span-4 row-span-2",
+      "metrics_row": "col-span-1 md:col-span-8 grid grid-cols-3 gap-6",
+      "chart_panel": "col-span-1 md:col-span-8",
+      "heatmap_panel": "col-span-1 md:col-span-6",
+      "table_panel": "col-span-1 md:col-span-6"
+    }
+  },
+  "components": {
+    "header": {
+      "description": "Minimal top bar bridging application title and live ET clock.",
+      "styles": "flex justify-between items-end border-b border-zinc-800 pb-4. The clock MUST use font-mono tabular-nums to prevent layout shifting."
+    },
+    "controls_row": {
+      "description": "Provider and Model selection dropdowns.",
+      "styles": "Use raw styling or customized Shadcn Select. rounded-none border-zinc-700 bg-[#0a0a0b] hover:border-zinc-500 transition-colors."
+    },
+    "zone_hero_panel": {
+      "description": "Dominant card showing the current zone status and an animated ring SVG.",
+      "visuals": "Center-aligned. Large status text (OFF-PEAK/MODERATE/PEAK) glowing in its respective color. Wrap this in a circular SVG ring that has a stroke-dasharray animation rotating slowly. The stroke color matches the active zone."
+    },
+    "metric_cards": {
+      "description": "3 cards showing Current ET Time, Next Zone Time, and a text Recommendation.",
+      "styles": "Strict rectangular borders. Label on top left (text-xs uppercase text-zinc-500). Massive monospace value in center or bottom left."
+    },
+    "charts_24h": {
+      "description": "Recharts BarChart representing the 24 hours of the day.",
+      "styles": "Bars must be colored strictly by their zone configuration (green/amber/red). X-axis: 00:00 to 23:00 ET. Tooltip background MUST be #050505 with border-zinc-800."
+    },
+    "weekly_heatmap": {
+      "description": "Grid layout representing 7 days x 24 hours.",
+      "styles": "Use a grid of small divs (e.g., w-3 h-3 or w-full h-full aspect-square). Apply bg-green-500/80, bg-amber-500/80, bg-red-500/80 based on schedule. Minimal gap (gap-1 or gap-0.5)."
+    },
+    "model_limits_table": {
+      "description": "Dense data table displaying limits.",
+      "styles": "border-collapse. Header text-xs DM Sans text-zinc-500. Rows text-sm Space Mono text-zinc-300. border-b border-zinc-800/50. hover:bg-zinc-900."
+    }
+  },
+  "motion_and_interactions": {
+    "animations": "Use Framer Motion for the SVG ring rotation (linear, infinite). The ring should scale up slightly (1.05) on zone change.",
+    "toast": "Use Sonner for a toast notification when the zone changes. Toast must be dark mode, strictly rectangular, with a border matching the new zone color."
+  },
+  "testing_attributes": {
+    "rules": "All interactive elements and data points MUST include `data-testid`.",
+    "examples": [
+      "data-testid='live-clock'",
+      "data-testid='provider-select'",
+      "data-testid='model-select'",
+      "data-testid='current-zone-display'",
+      "data-testid='zone-countdown'",
+      "data-testid='recommendation-text'",
+      "data-testid='24h-chart'",
+      "data-testid='heatmap-grid'",
+      "data-testid='limits-table'"
+    ]
+  },
+  "image_urls": {},
+  "instructions_to_main_agent": [
+    "Install required dependencies: `lucide-react`, `recharts`, `sonner`, `framer-motion`, `date-fns`, `date-fns-tz`.",
+    "Ensure the fonts 'Space Mono' and 'DM Sans' are imported from Google Fonts in index.html or injected via CSS.",
+    "Implement the zone logic strictly on the client-side using ET timezone manipulation.",
+    "Do NOT use generic Shadcn Card padding (p-6). Use p-4 or p-6 but ensure borders are rounded-none and shadows are disabled.",
+    "The 24H chart should use Recharts' <BarChart> with custom <Cell> fills matching the zone colors.",
+    "The Heatmap is just a CSS Grid (7 rows for days, 24 columns for hours).",
+    "No placeholder images are required for this purely UI/data-driven app."
+  ]
+}
