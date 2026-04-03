@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer, CartesianGrid, ReferenceLine,
 } from 'recharts';
-import { getZone, isWeekendDay } from '../lib/zoneLogic';
+import { getZoneForCell } from '../lib/zoneLogic';
 import { ZONE_CONFIG } from '../lib/modelData';
 
 const HOUR_LABELS = [
@@ -21,7 +21,7 @@ const TOOLTIP_CURSOR = { fill: 'rgba(255,255,255,0.03)' };
 const BAR_RADIUS = [1, 1, 0, 0];
 const yAxisFormatter = (v) => v === 20 ? 'LOW' : v === 55 ? 'MED' : 'HIGH';
 
-function CustomTooltip({ active, payload }) {
+function CustomTooltip({ active, payload, trafficProfile }) {
   if (!active || !payload?.length) return null;
   const { zone, label } = payload[0].payload;
   const config = ZONE_CONFIG[zone];
@@ -33,21 +33,21 @@ function CustomTooltip({ active, payload }) {
         padding: '8px 12px',
         fontFamily: 'Space Mono, monospace',
       }}
-    >
-      <p style={{ color: config.color, fontSize: 12, margin: 0 }}>{config.label}</p>
-      <p style={{ color: '#71717a', fontSize: 11, margin: '2px 0 0 0' }}>{label}</p>
-    </div>
+      >
+        <p style={{ color: config.color, fontSize: 12, margin: 0 }}>{config.label}</p>
+        <p style={{ color: '#71717a', fontSize: 11, margin: '2px 0 0 0' }}>{label}</p>
+        <p style={{ color: '#71717a', fontSize: 10, margin: '4px 0 0 0' }}>{trafficProfile.label}</p>
+      </div>
   );
 }
 
-export default function HourChart({ etDate }) {
+export default function HourChart({ etDate, model, trafficProfile }) {
   const currentHour = etDate.getHours();
   const dayOfWeek = etDate.getDay();
-  const isWeekend = isWeekendDay(dayOfWeek);
 
   const data = useMemo(() => {
     return Array.from({ length: 24 }, (_, hour) => {
-      const zone = getZone(hour, isWeekend);
+      const zone = getZoneForCell(hour, dayOfWeek, model);
       return {
         hour,
         label: HOUR_LABELS[hour],
@@ -56,15 +56,15 @@ export default function HourChart({ etDate }) {
         isCurrent: hour === currentHour,
       };
     });
-  // HOUR_LABELS, ZONE_CONFIG, getZone are module-level constants — stable, won't cause re-runs
+  // HOUR_LABELS, ZONE_CONFIG, getZoneForCell are module-level constants — stable references.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentHour, isWeekend]);
+  }, [currentHour, dayOfWeek, model]);
 
   return (
     <div className="border border-zinc-800 p-4" data-testid="24h-chart">
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs font-mono tracking-[0.2em] text-zinc-500 uppercase">
-          24-Hour Zone View (ET) — Today
+          24-Hour Traffic View (ET) - {trafficProfile.label}
         </p>
         <div className="flex items-center gap-4 text-xs font-mono">
           <span className="flex items-center gap-1.5">
@@ -99,7 +99,7 @@ export default function HourChart({ etDate }) {
             ticks={YAXIS_TICKS}
             tickFormatter={yAxisFormatter}
           />
-          <Tooltip content={<CustomTooltip />} cursor={TOOLTIP_CURSOR} />
+          <Tooltip content={<CustomTooltip trafficProfile={trafficProfile} />} cursor={TOOLTIP_CURSOR} />
           <ReferenceLine
             x={HOUR_LABELS[currentHour]}
             stroke="#ffffff"

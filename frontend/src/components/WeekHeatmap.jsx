@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { getZoneForCell, isWeekendDay } from '../lib/zoneLogic';
+import { getZoneForCell } from '../lib/zoneLogic';
 import { ZONE_CONFIG } from '../lib/modelData';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -20,7 +20,7 @@ const TIME_SLOTS = [
   { hour: 22, label: '10p' },
 ];
 
-export default function WeekHeatmap({ etDate }) {
+export default function WeekHeatmap({ etDate, model, trafficProfile }) {
   const [tooltip, setTooltip] = useState(null);
 
   const currentDay = etDate.getDay();
@@ -31,19 +31,24 @@ export default function WeekHeatmap({ etDate }) {
   const grid = useMemo(() => {
     return TIME_SLOTS.map(slot =>
       DAY_LABELS.map((_, dayIdx) => {
-        const zone = getZoneForCell(slot.hour, dayIdx);
+        const zone = getZoneForCell(slot.hour, dayIdx, model);
         return { zone, config: ZONE_CONFIG[zone] };
       })
     );
   // TIME_SLOTS, DAY_LABELS, ZONE_CONFIG, getZoneForCell are module-level constants — stable references
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [model]);
 
   return (
     <div className="border border-zinc-800 p-4" data-testid="heatmap-grid">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-mono tracking-[0.2em] text-zinc-500 uppercase">Weekly Heatmap</p>
+        <div>
+          <p className="text-xs font-mono tracking-[0.2em] text-zinc-500 uppercase">Weekly Heatmap</p>
+          <p className="text-[11px] font-mono text-zinc-600 mt-1 uppercase tracking-[0.12em]">
+            {trafficProfile.label}
+          </p>
+        </div>
         <div className="flex items-center gap-3 text-xs font-mono">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 inline-block" style={{ background: '#22c55e' }} />
@@ -103,7 +108,7 @@ export default function WeekHeatmap({ etDate }) {
                   <div
                     key={dayLabel}
                     className="h-7 cursor-pointer relative"
-                    onMouseEnter={() => setTooltip({ day: dayLabel, slot, zone })}
+                    onMouseEnter={() => setTooltip({ day: dayLabel, slot, zone, profile: trafficProfile.label })}
                     onMouseLeave={() => setTooltip(null)}
                     data-testid={isNow ? 'heatmap-now-cell' : undefined}
                     style={{
@@ -126,6 +131,7 @@ export default function WeekHeatmap({ etDate }) {
             <span style={{ color: ZONE_CONFIG[tooltip.zone].color }}>{ZONE_CONFIG[tooltip.zone].label}</span>
             {' · '}{tooltip.day} {tooltip.slot.label}
           </p>
+          <p className="text-[11px] font-mono text-zinc-600 mt-1">{tooltip.profile}</p>
         </div>
       )}
     </div>

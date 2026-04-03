@@ -3,7 +3,7 @@ import { ZONE_CONFIG } from '../lib/modelData';
 
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-function ETTimeCard({ etDate, zone }) {
+function ETTimeCard({ etDate, zone, trafficProfile }) {
   const config = ZONE_CONFIG[zone] || ZONE_CONFIG.offpeak;
   const timeStr = etDate.toLocaleTimeString('en-US', {
     hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true,
@@ -21,13 +21,16 @@ function ETTimeCard({ etDate, zone }) {
         className="absolute top-0 right-0 w-12 h-12 opacity-20"
         style={{ background: `radial-gradient(circle at top right, ${config.color}, transparent)` }}
       />
-      <p className="text-xs font-mono tracking-[0.2em] text-zinc-500 uppercase">ET TIME</p>
+      <p className="text-xs font-mono tracking-[0.2em] text-zinc-500 uppercase">ET Time</p>
       <div>
         <p className="text-2xl font-mono font-bold tabular-nums text-zinc-50 leading-none">
           {timeStr}
         </p>
         <p className="text-xs font-sans text-zinc-400 mt-1">
           {dayName}{isWeekend ? ' · Weekend' : ''}
+        </p>
+        <p className="text-[11px] font-mono text-zinc-600 mt-2 uppercase tracking-[0.12em]">
+          {trafficProfile.label}
         </p>
       </div>
       {/* Mini zone indicator bar */}
@@ -44,10 +47,8 @@ function ETTimeCard({ etDate, zone }) {
   );
 }
 
-function NextZoneCard({ transition, currentZone }) {
-  const TRANSITIONS = [6, 8, 14, 18];
-  const nextHourMap = { 6: 'moderate', 8: 'peak', 14: 'moderate', 18: 'offpeak' };
-  const nextZoneKey = nextHourMap[transition.nextHour] || 'offpeak';
+function NextZoneCard({ transition }) {
+  const nextZoneKey = transition.nextZone || 'offpeak';
   const config = ZONE_CONFIG[nextZoneKey] || ZONE_CONFIG.offpeak;
 
   return (
@@ -76,7 +77,7 @@ function NextZoneCard({ transition, currentZone }) {
   );
 }
 
-function RecommendedCard({ zone }) {
+function RecommendedCard({ zone, modelMeta }) {
   const config = ZONE_CONFIG[zone] || ZONE_CONFIG.offpeak;
 
   return (
@@ -94,6 +95,9 @@ function RecommendedCard({ zone }) {
           {config.rec}
         </p>
         <p className="text-xs font-sans text-zinc-400 mt-1">{config.recSub}</p>
+        <p className="text-[11px] font-mono text-zinc-600 mt-2 uppercase tracking-[0.12em]">
+          {modelMeta.status}
+        </p>
       </div>
       <div
         className="inline-flex items-center gap-1.5 px-2 py-1 rounded-none text-xs font-mono self-start"
@@ -105,12 +109,12 @@ function RecommendedCard({ zone }) {
   );
 }
 
-export default function MetricCards({ etDate, zone, transition }) {
+export default function MetricCards({ etDate, zone, transition, modelMeta, trafficProfile }) {
   return (
     <div className="grid grid-cols-3 gap-4" data-testid="metric-cards">
-      <ETTimeCard etDate={etDate} zone={zone} />
-      <NextZoneCard transition={transition} currentZone={zone} />
-      <RecommendedCard zone={zone} />
+      <ETTimeCard etDate={etDate} zone={zone} trafficProfile={trafficProfile} />
+      <NextZoneCard transition={transition} />
+      <RecommendedCard zone={zone} modelMeta={modelMeta} />
     </div>
   );
 }

@@ -1,57 +1,101 @@
-// Zone logic — fully client-side, Eastern Time only
+import {
+  DEFAULT_TRAFFIC_PROFILE,
+  TRAFFIC_PROFILES,
+  getTrafficProfileForModel,
+} from './modelData';
 
 export function getETDate() {
   return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
 }
 
 export function isWeekendDay(day) {
-  return day === 0 || day === 6; // 0=Sun, 6=Sat
+  return day === 0 || day === 6;
 }
 
-export function getZone(etHour, isWeekend) {
-  if (isWeekend) return 'offpeak';
-  if (etHour >= 8 && etHour < 14) return 'peak';
-  if ((etHour >= 6 && etHour < 8) || (etHour >= 14 && etHour < 18)) return 'moderate';
-  return 'offpeak';
+function getProfile(modelId) {
+  return getTrafficProfileForModel(modelId) || TRAFFIC_PROFILES[DEFAULT_TRAFFIC_PROFILE];
 }
 
-export function getNextTransition(etDate) {
-  const hour = etDate.getHours();
-  const day = etDate.getDay();
-  const isWeekend = isWeekendDay(day);
-  const TRANSITIONS = [6, 8, 14, 18];
+function getWindowsForDay(dayOfWeek, modelId) {
+  const profile = getProfile(modelId);
+  return isWeekendDay(dayOfWeek) ? profile.weekend : profile.weekday;
+}
 
-  let nextHour, daysToAdd = 0;
+function zoneFromWindows(hour, windows) {
+  const match = windows.find((window) => hour >= window.start && hour < window.end);
+  return match?.zone || 'offpeak';
+}
 
-  if (isWeekend) {
-    daysToAdd = day === 0 ? 1 : 2; // Sun→Mon or Sat→Mon
-    nextHour = 6;
-  } else {
-    nextHour = TRANSITIONS.find(h => h > hour);
-    if (nextHour === undefined) {
-      nextHour = 6;
-      daysToAdd = day === 5 ? 3 : 1; // Fri→Mon, else next day
+export function getZone(etHour, isWeekend, modelId = null) {
+  const profile = getProfile(modelId);
+  return zoneFromWindows(etHour, isWeekend ? profile.weekend : profile.weekday);
+}
+
+export function getZoneForDate(etDate, modelId = null) {
+  return getZone(etDate.getHours(), isWeekendDay(etDate.getDay()), modelId);
+}
+
+function formatTransitionHour(nextHour) {
+  const ampm = nextHour >= 12 ? 'PM' : 'AM';
+  const displayHour = nextHour > 12 ? nextHour - 12 : nextHour === 0 ? 12 : nextHour;
+  return `${displayHour} ${ampm} ET`;
+}
+
+export function getNextTransition(etDate, modelId = null) {
+  for (let daysToAdd = 0; daysToAdd < 8; daysToAdd += 1) {
+    const candidateBase = new Date(etDate);
+    candidateBase.setDate(etDate.getDate() + daysToAdd);
+    candidateBase.setMinutes(0, 0, 0);
+
+    const dayOfWeek = candidateBase.getDay();
+    const windows = getWindowsForDay(dayOfWeek, modelId);
+    const starts = windows.map((window) => window.start);
+    const boundaries = daysToAdd === 0 ? starts : [0, ...starts];
+    const uniqueBoundaries = [...new Set(boundaries)];
+
+    for (const nextHour of uniqueBoundaries) {
+      if (daysToAdd === 0 && nextHour <= etDate.getHours()) {
+        continue;
+      }
+
+      const nextDate = new Date(candidateBase);
+      nextDate.setHours(nextHour, 0, 0, 0);
+
+      const prevDate = new Date(nextDate.getTime() - 60000);
+      const previousZone = getZoneForDate(prevDate, modelId);
+      const nextZone = getZoneForDate(nextDate, modelId);
+
+      if (previousZone === nextZone) {
+        continue;
+      }
+
+      const diffMs = nextDate - etDate;
+      const diffMins = Math.max(0, Math.floor(diffMs / 60000));
+      const hours = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+
+      return {
+        hours,
+        mins,
+        timeStr: formatTransitionHour(nextHour),
+        nextHour,
+        nextZone,
+      };
     }
   }
 
-  const nextDate = new Date(etDate);
-  nextDate.setDate(nextDate.getDate() + daysToAdd);
-  nextDate.setHours(nextHour, 0, 0, 0);
-
-  const diffMs = nextDate - etDate;
-  const diffMins = Math.floor(diffMs / 60000);
-  const hours = Math.floor(diffMins / 60);
-  const mins = diffMins % 60;
-
-  const ampm = nextHour >= 12 ? 'PM' : 'AM';
-  const displayHour = nextHour > 12 ? nextHour - 12 : nextHour === 0 ? 12 : nextHour;
-  const timeStr = `${displayHour} ${ampm} ET`;
-
-  return { hours, mins, timeStr, nextHour };
+  const currentZone = getZoneForDate(etDate, modelId);
+  return {
+    hours: 0,
+    mins: 0,
+    timeStr: formatTransitionHour(etDate.getHours()),
+    nextHour: etDate.getHours(),
+    nextZone: currentZone,
+  };
 }
 
-export function getZoneForCell(hour, dayOfWeek) {
-  return getZone(hour, isWeekendDay(dayOfWeek));
+export function getZoneForCell(hour, dayOfWeek, modelId = null) {
+  return getZone(hour, isWeekendDay(dayOfWeek), modelId);
 }
 
 export function format12h(etDate) {
@@ -61,14 +105,6 @@ export function format12h(etDate) {
   });
 }
 
-export function getNextZoneName(currentZone, etDate) {
-  const day = etDate.getDay();
-  const hour = etDate.getHours();
-  const isWeekend = isWeekendDay(day);
-  if (isWeekend) return 'MODERATE';
-  const TRANSITIONS = [6, 8, 14, 18];
-  const nextHour = TRANSITIONS.find(h => h > hour);
-  if (nextHour === undefined) return 'MODERATE';
-  return getZone(nextHour, false) === 'offpeak' ? 'OFF-PEAK'
-    : getZone(nextHour, false) === 'moderate' ? 'MODERATE' : 'PEAK';
+export function getNextZoneName(currentZone, etDate, modelId = null) {
+  return getNextTransition(etDate, modelId).nextZone || currentZone;
 }

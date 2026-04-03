@@ -4,55 +4,6 @@ export const PROVIDERS = [
   { key: 'gemini', label: 'Google Gemini' },
 ];
 
-export const MODELS = {
-  claude: [
-    'claude-opus-4-6',
-    'claude-opus-4-5',
-    'claude-sonnet-4-5',
-    'claude-haiku-3-5',
-    'claude-3-opus-20240229',
-    'claude-3-sonnet-20240229',
-  ],
-  openai: [
-    'gpt-4o',
-    'gpt-4o-mini',
-    'o3',
-    'o3-mini',
-    'gpt-4-turbo',
-    'gpt-4',
-  ],
-  gemini: [
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
-    'gemini-1.5-pro',
-    'gemini-1.5-flash',
-    'gemini-1.0-pro',
-  ],
-};
-
-export const MODEL_LIMITS = {
-  // Anthropic
-  'claude-opus-4-6':            { rpm: '2,000', tpm: '4M',    ctx: '200K', out: '32K',  tier: 'Tier 1' },
-  'claude-opus-4-5':            { rpm: '50',    tpm: '20K',   ctx: '200K', out: '32K',  tier: 'Tier 1' },
-  'claude-sonnet-4-5':          { rpm: '500',   tpm: '80K',   ctx: '200K', out: '16K',  tier: 'Tier 1' },
-  'claude-haiku-3-5':           { rpm: '1,000', tpm: '100K',  ctx: '200K', out: '8K',   tier: 'Tier 1' },
-  'claude-3-opus-20240229':     { rpm: '50',    tpm: '20K',   ctx: '200K', out: '4K',   tier: 'Tier 1' },
-  'claude-3-sonnet-20240229':   { rpm: '500',   tpm: '40K',   ctx: '200K', out: '4K',   tier: 'Tier 1' },
-  // OpenAI
-  'gpt-4o':       { rpm: '500',   tpm: '450K', ctx: '128K', out: '16K',  tier: 'Tier 1' },
-  'gpt-4o-mini':  { rpm: '500',   tpm: '200K', ctx: '128K', out: '16K',  tier: 'Tier 1' },
-  'o3':           { rpm: '100',   tpm: '200K', ctx: '200K', out: '100K', tier: 'Tier 1' },
-  'o3-mini':      { rpm: '500',   tpm: '200K', ctx: '200K', out: '100K', tier: 'Tier 1' },
-  'gpt-4-turbo':  { rpm: '500',   tpm: '450K', ctx: '128K', out: '4K',   tier: 'Tier 1' },
-  'gpt-4':        { rpm: '500',   tpm: '40K',  ctx: '8K',   out: '8K',   tier: 'Tier 1' },
-  // Google
-  'gemini-2.0-flash':      { rpm: '2,000', tpm: '4M',   ctx: '1M',  out: '8K',  tier: 'Free/Paid' },
-  'gemini-2.0-flash-lite': { rpm: '4,000', tpm: '4M',   ctx: '1M',  out: '8K',  tier: 'Free/Paid' },
-  'gemini-1.5-pro':        { rpm: '360',   tpm: '4M',   ctx: '2M',  out: '8K',  tier: 'Paid' },
-  'gemini-1.5-flash':      { rpm: '1,000', tpm: '4M',   ctx: '1M',  out: '8K',  tier: 'Free/Paid' },
-  'gemini-1.0-pro':        { rpm: '360',   tpm: '120K', ctx: '32K', out: '8K',  tier: 'Paid' },
-};
-
 export const ZONE_CONFIG = {
   offpeak: {
     key: 'offpeak',
@@ -62,9 +13,9 @@ export const ZONE_CONFIG = {
     border: 'rgba(34, 197, 94, 0.35)',
     demand: 'LOW DEMAND',
     text: 'Best time to run heavy workloads.',
-    subtext: 'Low latency & full throughput.',
+    subtext: 'Low latency and the widest scheduling headroom.',
     rec: 'Great time to work',
-    recSub: 'Full throughput available',
+    recSub: 'Best window for long runs and large contexts',
     score: 20,
     badgeBg: 'rgba(34, 197, 94, 0.15)',
   },
@@ -75,10 +26,10 @@ export const ZONE_CONFIG = {
     bgGlow: 'rgba(245, 158, 11, 0.12)',
     border: 'rgba(245, 158, 11, 0.35)',
     demand: 'MODERATE DEMAND',
-    text: 'Proceed with caution.',
-    subtext: 'Avoid large context windows.',
+    text: 'Interactive traffic is building.',
+    subtext: 'Good for normal prompts, but watch long jobs.',
     rec: 'Proceed carefully',
-    recSub: 'Monitor latency closely',
+    recSub: 'Keep prompts tighter and monitor latency',
     score: 55,
     badgeBg: 'rgba(245, 158, 11, 0.15)',
   },
@@ -89,11 +40,530 @@ export const ZONE_CONFIG = {
     bgGlow: 'rgba(239, 68, 68, 0.12)',
     border: 'rgba(239, 68, 68, 0.35)',
     demand: 'HIGH DEMAND',
-    text: 'Defer heavy workloads.',
-    subtext: 'Expect higher latency & rate limits.',
+    text: 'Best to defer expensive or long-running work.',
+    subtext: 'Expect higher contention and slower responses.',
     rec: 'Defer heavy tasks',
-    recSub: 'High latency expected',
+    recSub: 'Save big contexts and tool-heavy jobs for later',
     score: 90,
     badgeBg: 'rgba(239, 68, 68, 0.15)',
   },
 };
+
+export const DEFAULT_TRAFFIC_PROFILE = 'legacy-default';
+
+export const TRAFFIC_PROFILES = {
+  'frontier-reasoning': {
+    key: 'frontier-reasoning',
+    label: 'Frontier reasoning',
+    summary: 'Conservative schedule for highest-capability reasoning models.',
+    inferenceNote: 'Inferred from official model positioning and rate-limit posture. Providers do not publish fixed ET peak-hour schedules.',
+    scheduleLabel: 'Weekdays 9a-5p ET peak; 7a-9a and 5p-8p ET moderate',
+    weekday: [
+      { start: 0, end: 7, zone: 'offpeak' },
+      { start: 7, end: 9, zone: 'moderate' },
+      { start: 9, end: 17, zone: 'peak' },
+      { start: 17, end: 20, zone: 'moderate' },
+      { start: 20, end: 24, zone: 'offpeak' },
+    ],
+    weekend: [{ start: 0, end: 24, zone: 'offpeak' }],
+  },
+  'balanced-interactive': {
+    key: 'balanced-interactive',
+    label: 'Balanced interactive',
+    summary: 'For general-purpose flagship and balanced models.',
+    inferenceNote: 'Inferred from official docs plus model positioning around interactive latency and throughput.',
+    scheduleLabel: 'Weekdays 8a-3p ET peak; 6a-8a and 3p-7p ET moderate',
+    weekday: [
+      { start: 0, end: 6, zone: 'offpeak' },
+      { start: 6, end: 8, zone: 'moderate' },
+      { start: 8, end: 15, zone: 'peak' },
+      { start: 15, end: 19, zone: 'moderate' },
+      { start: 19, end: 24, zone: 'offpeak' },
+    ],
+    weekend: [{ start: 0, end: 24, zone: 'offpeak' }],
+  },
+  'high-throughput': {
+    key: 'high-throughput',
+    label: 'High-throughput / low-latency',
+    summary: 'For mini, nano, flash, and lite models built for volume.',
+    inferenceNote: 'Inferred from official docs emphasizing low latency, low cost, and high-volume operation.',
+    scheduleLabel: 'Weekdays 11a-3p ET peak; 8a-11a and 3p-6p ET moderate',
+    weekday: [
+      { start: 0, end: 8, zone: 'offpeak' },
+      { start: 8, end: 11, zone: 'moderate' },
+      { start: 11, end: 15, zone: 'peak' },
+      { start: 15, end: 18, zone: 'moderate' },
+      { start: 18, end: 24, zone: 'offpeak' },
+    ],
+    weekend: [{ start: 0, end: 24, zone: 'offpeak' }],
+  },
+  'preview-balanced': {
+    key: 'preview-balanced',
+    label: 'Preview / variable capacity',
+    summary: 'For preview models whose effective capacity is more volatile.',
+    inferenceNote: 'Inferred from official docs that preview models often have tighter or changing limits.',
+    scheduleLabel: 'Weekdays 10a-4p ET peak; 8a-10a and 4p-7p ET moderate',
+    weekday: [
+      { start: 0, end: 8, zone: 'offpeak' },
+      { start: 8, end: 10, zone: 'moderate' },
+      { start: 10, end: 16, zone: 'peak' },
+      { start: 16, end: 19, zone: 'moderate' },
+      { start: 19, end: 24, zone: 'offpeak' },
+    ],
+    weekend: [{ start: 0, end: 24, zone: 'offpeak' }],
+  },
+  'legacy-default': {
+    key: 'legacy-default',
+    label: 'Legacy default fallback',
+    summary: 'Fallback profile when there is no model-specific profile.',
+    inferenceNote: 'This matches the app’s previous shared schedule and is used only as a fallback.',
+    scheduleLabel: 'Weekdays 8a-2p ET peak; 6a-8a and 2p-6p ET moderate',
+    weekday: [
+      { start: 0, end: 6, zone: 'offpeak' },
+      { start: 6, end: 8, zone: 'moderate' },
+      { start: 8, end: 14, zone: 'peak' },
+      { start: 14, end: 18, zone: 'moderate' },
+      { start: 18, end: 24, zone: 'offpeak' },
+    ],
+    weekend: [{ start: 0, end: 24, zone: 'offpeak' }],
+  },
+};
+
+const MODEL_CATALOG = {
+  claude: [
+    {
+      id: 'claude-opus-4-6',
+      label: 'Claude Opus 4.6',
+      status: 'latest',
+      summary: 'Anthropic’s deepest reasoning and coding model.',
+      knowledgeCutoff: 'Not published in the release note',
+      latestUpdate: 'March 2026',
+      versions: ['claude-opus-4-6'],
+      limits: { rpm: 'See Console', tpm: 'Shared Opus pool', ctx: '1M+', out: 'See docs', batch: 'See docs', tier: 'Anthropic tiered' },
+      source: {
+        label: 'Anthropic release note',
+        url: 'https://www.anthropic.com/news/claude-opus-4-6',
+      },
+      trafficProfile: 'frontier-reasoning',
+    },
+    {
+      id: 'claude-sonnet-4-6',
+      label: 'Claude Sonnet 4.6',
+      status: 'latest',
+      summary: 'Balanced Claude model with adaptive and extended thinking.',
+      knowledgeCutoff: 'Not published in the release note',
+      latestUpdate: 'March 2026',
+      versions: ['claude-sonnet-4-6'],
+      limits: { rpm: 'See Console', tpm: 'Shared Sonnet 4.x pool', ctx: '200K+', out: 'See docs', batch: 'See docs', tier: 'Anthropic tiered' },
+      source: {
+        label: 'Anthropic release note',
+        url: 'https://www.anthropic.com/news/claude-sonnet-4-6',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+    {
+      id: 'claude-haiku-4-5',
+      label: 'Claude Haiku 4.5',
+      status: 'latest',
+      summary: 'Fastest current Claude class for lightweight reasoning and chat.',
+      knowledgeCutoff: 'February 2025',
+      latestUpdate: 'October 2025',
+      versions: ['claude-haiku-4-5'],
+      limits: { rpm: 'See Console', tpm: 'See Console', ctx: '200K+', out: 'See docs', batch: 'See docs', tier: 'Anthropic tiered' },
+      source: {
+        label: 'Anthropic transparency hub',
+        url: 'https://www.anthropic.com/transparency',
+      },
+      trafficProfile: 'high-throughput',
+    },
+    {
+      id: 'claude-opus-4-5',
+      label: 'Claude Opus 4.5',
+      status: 'previous',
+      summary: 'Previous frontier Opus release retained for compatibility.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Previous generation',
+      versions: ['claude-opus-4-5'],
+      limits: { rpm: 'See Console', tpm: 'Shared Opus pool', ctx: '200K+', out: 'See docs', batch: 'See docs', tier: 'Anthropic tiered' },
+      source: {
+        label: 'Anthropic Opus 4.6 note',
+        url: 'https://www.anthropic.com/news/claude-opus-4-6',
+      },
+      trafficProfile: 'frontier-reasoning',
+    },
+    {
+      id: 'claude-sonnet-4-5',
+      label: 'Claude Sonnet 4.5',
+      status: 'previous',
+      summary: 'Previous balanced Sonnet release.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Previous generation',
+      versions: ['claude-sonnet-4-5'],
+      limits: { rpm: 'See Console', tpm: 'Shared Sonnet 4.x pool', ctx: '200K+', out: 'See docs', batch: 'See docs', tier: 'Anthropic tiered' },
+      source: {
+        label: 'Anthropic Sonnet 4.6 note',
+        url: 'https://www.anthropic.com/news/claude-sonnet-4-6',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+    {
+      id: 'claude-3-5-haiku-20241022',
+      label: 'Claude Haiku 3.5',
+      status: 'legacy',
+      summary: 'Older fast Claude option kept for historical comparison.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'October 2024 snapshot',
+      versions: ['claude-3-5-haiku-20241022', 'claude-3-5-haiku-latest'],
+      limits: { rpm: 'See Console', tpm: 'See Console', ctx: '200K', out: 'See docs', batch: 'See docs', tier: 'Anthropic tiered' },
+      source: {
+        label: 'Anthropic models overview',
+        url: 'https://docs.anthropic.com/en/docs/models-overview',
+      },
+      trafficProfile: 'high-throughput',
+    },
+  ],
+  openai: [
+    {
+      id: 'gpt-5.4',
+      label: 'GPT-5.4',
+      status: 'latest',
+      summary: 'OpenAI flagship for agentic, coding, and professional workflows.',
+      knowledgeCutoff: 'Aug 31, 2025',
+      latestUpdate: 'Latest model page',
+      versions: ['gpt-5.4'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: '1M', out: '128K', batch: 'See docs', tier: 'Tiered' },
+      source: {
+        label: 'OpenAI model page',
+        url: 'https://developers.openai.com/api/docs/models/gpt-5.4',
+      },
+      trafficProfile: 'frontier-reasoning',
+    },
+    {
+      id: 'gpt-5.4-mini',
+      label: 'GPT-5.4 mini',
+      status: 'latest',
+      summary: 'High-volume GPT-5.4 variant for coding and subagents.',
+      knowledgeCutoff: 'Aug 31, 2025',
+      latestUpdate: 'Latest model page',
+      versions: ['gpt-5.4-mini'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: '400K', out: '128K', batch: 'See docs', tier: 'Tiered' },
+      source: {
+        label: 'OpenAI model page',
+        url: 'https://developers.openai.com/api/docs/models/gpt-5.4-mini',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+    {
+      id: 'gpt-5.4-nano',
+      label: 'GPT-5.4 nano',
+      status: 'latest',
+      summary: 'Cheapest GPT-5.4-class model for simple high-volume tasks.',
+      knowledgeCutoff: 'Aug 31, 2025',
+      latestUpdate: 'Latest model page',
+      versions: ['gpt-5.4-nano'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: '400K', out: '128K', batch: 'See docs', tier: 'Tiered' },
+      source: {
+        label: 'OpenAI model page',
+        url: 'https://developers.openai.com/api/docs/models/gpt-5.4-nano',
+      },
+      trafficProfile: 'high-throughput',
+    },
+    {
+      id: 'gpt-5',
+      label: 'GPT-5',
+      status: 'previous',
+      summary: 'Previous intelligent reasoning model; docs recommend newer GPT-5.x models.',
+      knowledgeCutoff: 'Sep 30, 2024',
+      latestUpdate: '2025-08-07 snapshot',
+      versions: ['gpt-5', 'gpt-5-2025-08-07'],
+      limits: { rpm: '500', tpm: '500K', ctx: '400K', out: '128K', batch: '1.5M', tier: 'Tier 1' },
+      source: {
+        label: 'OpenAI model page',
+        url: 'https://developers.openai.com/api/docs/models/gpt-5',
+      },
+      trafficProfile: 'frontier-reasoning',
+    },
+    {
+      id: 'gpt-5-mini',
+      label: 'GPT-5 mini',
+      status: 'current',
+      summary: 'Cost-efficient GPT-5 variant for medium-complexity work.',
+      knowledgeCutoff: 'Sep 30, 2024',
+      latestUpdate: '2025-08-07 snapshot',
+      versions: ['gpt-5-mini', 'gpt-5-mini-2025-08-07'],
+      limits: { rpm: '500', tpm: '500K', ctx: '400K', out: '128K', batch: '1.5M', tier: 'Tier 1' },
+      source: {
+        label: 'OpenAI model page',
+        url: 'https://developers.openai.com/api/docs/models/gpt-5-mini',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+    {
+      id: 'gpt-5-nano',
+      label: 'GPT-5 nano',
+      status: 'current',
+      summary: 'Fastest GPT-5 family option for lightweight tasks and routing.',
+      knowledgeCutoff: 'Sep 30, 2024',
+      latestUpdate: '2025-08-07 snapshot',
+      versions: ['gpt-5-nano', 'gpt-5-nano-2025-08-07'],
+      limits: { rpm: '500', tpm: '200K', ctx: '400K', out: '128K', batch: '2M', tier: 'Tier 1' },
+      source: {
+        label: 'OpenAI model page',
+        url: 'https://developers.openai.com/api/docs/models/gpt-5-nano',
+      },
+      trafficProfile: 'high-throughput',
+    },
+    {
+      id: 'gpt-4.5-preview',
+      label: 'GPT-4.5 Preview',
+      status: 'deprecated',
+      summary: 'Deprecated preview model retained because many teams still look for it explicitly.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Deprecated preview',
+      versions: ['gpt-4.5-preview'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: 'See docs', out: 'See docs', batch: 'See docs', tier: 'Deprecated preview' },
+      source: {
+        label: 'OpenAI model page',
+        url: 'https://developers.openai.com/api/docs/models/gpt-4.5-preview',
+      },
+      trafficProfile: 'preview-balanced',
+    },
+    {
+      id: 'gpt-4.1',
+      label: 'GPT-4.1',
+      status: 'current',
+      summary: 'Current non-reasoning flagship in the GPT-4.1 family.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Current model family',
+      versions: ['gpt-4.1'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: 'See docs', out: 'See docs', batch: 'See docs', tier: 'Tiered' },
+      source: {
+        label: 'OpenAI models overview',
+        url: 'https://developers.openai.com/api/docs/models',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+    {
+      id: 'gpt-4.1-mini',
+      label: 'GPT-4.1 mini',
+      status: 'current',
+      summary: 'Smaller GPT-4.1 variant optimized for latency and cost.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Current model family',
+      versions: ['gpt-4.1-mini'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: 'See docs', out: 'See docs', batch: 'See docs', tier: 'Tiered' },
+      source: {
+        label: 'OpenAI models overview',
+        url: 'https://developers.openai.com/api/docs/models',
+      },
+      trafficProfile: 'high-throughput',
+    },
+    {
+      id: 'o3',
+      label: 'o3',
+      status: 'current',
+      summary: 'OpenAI reasoning model kept for deeper chain-of-thought style work.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Current reasoning family',
+      versions: ['o3'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: 'See docs', out: 'See docs', batch: 'See docs', tier: 'Tiered' },
+      source: {
+        label: 'OpenAI models overview',
+        url: 'https://developers.openai.com/api/docs/models',
+      },
+      trafficProfile: 'frontier-reasoning',
+    },
+    {
+      id: 'o4-mini',
+      label: 'o4-mini',
+      status: 'current',
+      summary: 'Smaller reasoning model for faster interactive use.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Current reasoning family',
+      versions: ['o4-mini'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: 'See docs', out: 'See docs', batch: 'See docs', tier: 'Tiered' },
+      source: {
+        label: 'OpenAI models overview',
+        url: 'https://developers.openai.com/api/docs/models',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+    {
+      id: 'gpt-4o',
+      label: 'GPT-4o',
+      status: 'legacy',
+      summary: 'Older omni general-purpose model still common in deployed apps.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Legacy but still active',
+      versions: ['gpt-4o'],
+      limits: { rpm: 'See docs', tpm: 'See docs', ctx: 'See docs', out: 'See docs', batch: 'See docs', tier: 'Tiered' },
+      source: {
+        label: 'OpenAI models overview',
+        url: 'https://developers.openai.com/api/docs/models',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+  ],
+  gemini: [
+    {
+      id: 'gemini-3-pro-preview',
+      label: 'Gemini 3 Pro Preview',
+      status: 'preview',
+      summary: 'Newest Gemini preview for advanced reasoning and agentic tasks.',
+      knowledgeCutoff: 'January 2025',
+      latestUpdate: 'March 2026',
+      versions: ['Preview: gemini-3-pro-preview'],
+      limits: { rpm: 'AI Studio', tpm: 'AI Studio', ctx: '1,048,576', out: '65,536', batch: '5M', tier: 'Preview / AI Studio' },
+      source: {
+        label: 'Gemini model docs',
+        url: 'https://ai.google.dev/gemini-api/docs/models/gemini',
+      },
+      trafficProfile: 'preview-balanced',
+    },
+    {
+      id: 'gemini-3-flash-preview',
+      label: 'Gemini 3 Flash Preview',
+      status: 'preview',
+      summary: 'Preview Gemini flash model for faster multimodal and agentic work.',
+      knowledgeCutoff: 'January 2025',
+      latestUpdate: 'March 2026',
+      versions: ['Preview: gemini-3-flash-preview'],
+      limits: { rpm: 'AI Studio', tpm: 'AI Studio', ctx: '1,048,576', out: '65,536', batch: '3M', tier: 'Preview / AI Studio' },
+      source: {
+        label: 'Gemini model docs',
+        url: 'https://ai.google.dev/gemini-api/docs/models/gemini',
+      },
+      trafficProfile: 'preview-balanced',
+    },
+    {
+      id: 'gemini-3.1-flash-lite-preview',
+      label: 'Gemini 3.1 Flash-Lite Preview',
+      status: 'preview',
+      summary: 'Newest Gemini low-cost, high-frequency multimodal option.',
+      knowledgeCutoff: 'January 2025',
+      latestUpdate: 'March 2026',
+      versions: ['Preview: gemini-3.1-flash-lite-preview'],
+      limits: { rpm: 'AI Studio', tpm: 'AI Studio', ctx: '1,048,576', out: '65,536', batch: '10M', tier: 'Preview / AI Studio' },
+      source: {
+        label: 'Gemini model page',
+        url: 'https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite-preview',
+      },
+      trafficProfile: 'high-throughput',
+    },
+    {
+      id: 'gemini-2.5-pro',
+      label: 'Gemini 2.5 Pro',
+      status: 'current',
+      summary: 'Stable Gemini thinking model for complex coding and reasoning.',
+      knowledgeCutoff: 'January 2025',
+      latestUpdate: 'June 2025',
+      versions: ['Stable: gemini-2.5-pro'],
+      limits: { rpm: '150', tpm: '2M', ctx: '1,048,576', out: '65,536', batch: '5M', tier: 'Tier 1' },
+      source: {
+        label: 'Gemini model docs',
+        url: 'https://ai.google.dev/gemini-api/docs/models/gemini',
+      },
+      trafficProfile: 'frontier-reasoning',
+    },
+    {
+      id: 'gemini-2.5-flash',
+      label: 'Gemini 2.5 Flash',
+      status: 'current',
+      summary: 'Best Gemini price/performance balance for interactive workloads.',
+      knowledgeCutoff: 'January 2025',
+      latestUpdate: '2025 generation',
+      versions: ['Stable: gemini-2.5-flash'],
+      limits: { rpm: '1,000', tpm: '1M', ctx: '1,048,576', out: '65,536', batch: '3M', tier: 'Tier 1' },
+      source: {
+        label: 'Gemini docs and rate limits',
+        url: 'https://ai.google.dev/gemini-api/docs/rate-limits',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+    {
+      id: 'gemini-2.5-flash-lite',
+      label: 'Gemini 2.5 Flash-Lite',
+      status: 'current',
+      summary: 'Most cost-efficient stable Gemini 2.5 model for high throughput.',
+      knowledgeCutoff: 'January 2025',
+      latestUpdate: '2025 generation',
+      versions: ['Stable: gemini-2.5-flash-lite'],
+      limits: { rpm: '4,000', tpm: '4M', ctx: '1,048,576', out: '65,536', batch: '10M', tier: 'Tier 1' },
+      source: {
+        label: 'Gemini docs and rate limits',
+        url: 'https://ai.google.dev/gemini-api/docs/rate-limits',
+      },
+      trafficProfile: 'high-throughput',
+    },
+    {
+      id: 'gemini-2.0-flash',
+      label: 'Gemini 2.0 Flash',
+      status: 'deprecated',
+      summary: 'Deprecated stable Flash generation with a documented replacement path.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Deprecated; replaced by Gemini 2.5 Flash',
+      versions: ['gemini-2.0-flash', 'gemini-2.0-flash-001'],
+      limits: { rpm: '2,000', tpm: '4M', ctx: 'See docs', out: 'See docs', batch: '10M', tier: 'Tier 1' },
+      source: {
+        label: 'Gemini deprecations',
+        url: 'https://ai.google.dev/gemini-api/docs/deprecations',
+      },
+      trafficProfile: 'balanced-interactive',
+    },
+    {
+      id: 'gemini-2.0-flash-lite',
+      label: 'Gemini 2.0 Flash-Lite',
+      status: 'deprecated',
+      summary: 'Deprecated Lite generation retained to show its replacement and historical limits.',
+      knowledgeCutoff: 'See docs',
+      latestUpdate: 'Deprecated; replaced by Gemini 2.5 Flash-Lite',
+      versions: ['gemini-2.0-flash-lite', 'gemini-2.0-flash-lite-001'],
+      limits: { rpm: '4,000', tpm: '4M', ctx: 'See docs', out: 'See docs', batch: '10M', tier: 'Tier 1' },
+      source: {
+        label: 'Gemini deprecations',
+        url: 'https://ai.google.dev/gemini-api/docs/deprecations',
+      },
+      trafficProfile: 'high-throughput',
+    },
+  ],
+};
+
+const allModels = Object.values(MODEL_CATALOG).flat();
+
+export const MODEL_DETAILS = Object.fromEntries(
+  allModels.map((model) => [model.id, model])
+);
+
+export const MODELS = Object.fromEntries(
+  Object.entries(MODEL_CATALOG).map(([provider, models]) => [
+    provider,
+    models.map(({ id }) => id),
+  ])
+);
+
+export const DEFAULT_MODEL_BY_PROVIDER = Object.fromEntries(
+  Object.entries(MODEL_CATALOG).map(([provider, models]) => [provider, models[0]?.id])
+);
+
+export const MODEL_LIMITS = Object.fromEntries(
+  allModels.map((model) => [
+    model.id,
+    {
+      rpm: model.limits.rpm,
+      tpm: model.limits.tpm,
+      ctx: model.limits.ctx,
+      out: model.limits.out,
+      batch: model.limits.batch,
+      tier: model.limits.tier,
+    },
+  ])
+);
+
+export function getModelDetails(modelId) {
+  return MODEL_DETAILS[modelId];
+}
+
+export function getTrafficProfileForModel(modelId) {
+  const profileKey = MODEL_DETAILS[modelId]?.trafficProfile || DEFAULT_TRAFFIC_PROFILE;
+  return TRAFFIC_PROFILES[profileKey] || TRAFFIC_PROFILES[DEFAULT_TRAFFIC_PROFILE];
+}

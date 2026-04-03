@@ -6,7 +6,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const TICK_ANGLES = [0, 90, 180, 270];
 
-export default function ZoneHero({ zone, etDate, transition }) {
+export default function ZoneHero({ zone, etDate, transition, modelMeta, trafficProfile }) {
   const config = ZONE_CONFIG[zone] || ZONE_CONFIG.offpeak;
   const arcLength = (config.score / 100) * CIRCUMFERENCE;
 
@@ -28,7 +28,7 @@ export default function ZoneHero({ zone, etDate, transition }) {
     >
       {/* Zone label */}
       <div className="text-center w-full">
-        <p className="text-xs font-mono tracking-[0.22em] text-zinc-500 mb-2">CURRENT ZONE</p>
+        <p className="text-xs font-mono tracking-[0.22em] text-zinc-500 mb-2">Current Zone</p>
         <h1
           className="text-5xl lg:text-6xl font-mono font-bold tracking-widest leading-none"
           style={{
@@ -39,6 +39,9 @@ export default function ZoneHero({ zone, etDate, transition }) {
         >
           {config.label}
         </h1>
+        <p className="text-xs font-mono text-zinc-600 mt-3 uppercase tracking-[0.12em]">
+          {modelMeta.label}
+        </p>
       </div>
 
       {/* SVG Ring */}
@@ -111,6 +114,9 @@ export default function ZoneHero({ zone, etDate, transition }) {
       <div className="text-center w-full space-y-1">
         <p className="text-sm font-sans text-zinc-300">{config.text}</p>
         <p className="text-xs font-sans text-zinc-500">{config.subtext}</p>
+        <p className="text-[11px] font-mono text-zinc-600 uppercase tracking-[0.12em]">
+          {trafficProfile.label}
+        </p>
         <div className="mt-3 pt-3 border-t border-zinc-800">
           <p
             className="text-xs font-mono text-zinc-400"

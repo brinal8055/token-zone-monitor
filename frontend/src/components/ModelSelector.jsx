@@ -1,8 +1,22 @@
 import React from 'react';
-import { PROVIDERS, MODELS } from '../lib/modelData';
+import { MODEL_DETAILS, MODELS, PROVIDERS } from '../lib/modelData';
 
-export default function ModelSelector({ provider, model, onProviderChange, onModelChange, isLive }) {
-  const providerLabel = PROVIDERS.find(p => p.key === provider)?.label || provider;
+function formatModelOption(modelId) {
+  const meta = MODEL_DETAILS[modelId];
+  if (!meta) return modelId;
+
+  const suffix = meta.status === 'preview'
+    ? ' (Preview)'
+    : meta.status === 'deprecated'
+      ? ' (Deprecated)'
+      : meta.status === 'latest'
+        ? ' (Latest)'
+        : '';
+
+  return `${meta.label}${suffix}`;
+}
+
+export default function ModelSelector({ provider, model, onProviderChange, onModelChange }) {
 
   return (
     <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
@@ -39,9 +53,9 @@ export default function ModelSelector({ provider, model, onProviderChange, onMod
           onChange={e => onModelChange(e.target.value)}
           data-testid="model-select"
         >
-          {(MODELS[provider] || []).map(m => (
-            <option key={m} value={m} style={{ background: '#0a0a0b' }}>
-              {m}
+          {(MODELS[provider] || []).map((modelId) => (
+            <option key={modelId} value={modelId} style={{ background: '#0a0a0b' }}>
+              {formatModelOption(modelId)}
             </option>
           ))}
         </select>
