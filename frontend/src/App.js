@@ -89,14 +89,15 @@ export default function App() {
       <Toaster position="top-right" richColors={false} />
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-5">
-        <header className="flex items-start justify-between gap-3">
-          <p className="text-[11px] font-mono tracking-[0.28em] uppercase text-zinc-500 pt-1">
+        <header className="flex items-center justify-between gap-3">
+          <p className="text-[11px] font-mono tracking-[0.28em] uppercase text-zinc-500">
             Token Zone Monitor
           </p>
-          <div className="border border-zinc-800 px-4 py-3 min-w-[210px]">
-            <p className="text-xs font-mono tracking-[0.22em] uppercase text-zinc-600">ET</p>
-            <p className="text-2xl font-mono font-bold text-zinc-50 tabular-nums mt-1">{clockStr}</p>
-            <p className="text-xs font-sans text-zinc-500 mt-1">Live Eastern Time</p>
+          <div className="border border-zinc-800 px-3 py-1.5 flex items-center gap-3 shrink-0">
+            <p className="text-[11px] font-mono tracking-[0.18em] uppercase text-zinc-600">ET</p>
+            <p className="text-lg font-mono font-bold text-zinc-50 tabular-nums leading-none whitespace-nowrap">
+              {clockStr}
+            </p>
           </div>
         </header>
 
