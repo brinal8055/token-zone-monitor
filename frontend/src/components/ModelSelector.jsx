@@ -9,6 +9,8 @@ function formatModelOption(modelId) {
     ? ' (Preview)'
     : meta.status === 'deprecated'
       ? ' (Deprecated)'
+      : meta.status === 'retired'
+        ? ' (Retired)'
       : meta.status === 'latest'
         ? ' (Latest)'
         : '';
