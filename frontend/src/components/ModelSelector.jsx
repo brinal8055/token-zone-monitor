@@ -5,13 +5,16 @@ function formatModelOption(modelId) {
   const meta = MODEL_DETAILS[modelId];
   if (!meta) return modelId;
 
-  const suffix = meta.status === 'preview'
+  const status = meta.status || '';
+  const suffix = status.includes('preview')
     ? ' (Preview)'
-    : meta.status === 'deprecated'
+    : status === 'deprecated'
       ? ' (Deprecated)'
-      : meta.status === 'retired'
+      : status === 'retired'
         ? ' (Retired)'
-      : meta.status === 'latest'
+      : status === 'transitioning'
+        ? ' (Transitioning)'
+      : status.startsWith('latest')
         ? ' (Latest)'
         : '';
 
