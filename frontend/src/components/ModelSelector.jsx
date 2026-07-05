@@ -5,15 +5,18 @@ function formatModelOption(modelId) {
   const meta = MODEL_DETAILS[modelId];
   if (!meta) return modelId;
 
-  const suffix = meta.status === 'preview'
-    ? ' (Preview)'
-    : meta.status === 'deprecated'
-      ? ' (Deprecated)'
-      : meta.status === 'retired'
-        ? ' (Retired)'
-      : meta.status === 'latest'
-        ? ' (Latest)'
-        : '';
+  const status = String(meta.status || '').toLowerCase();
+  const suffix = status.includes('latest')
+    ? ' (Latest)'
+    : status.includes('preview')
+      ? ' (Preview)'
+      : status.includes('sunsetting')
+        ? ' (Sunsetting)'
+        : status.includes('deprecated')
+          ? ' (Deprecated)'
+          : status.includes('retired')
+            ? ' (Retired)'
+            : '';
 
   return `${meta.label}${suffix}`;
 }
