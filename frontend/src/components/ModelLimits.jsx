@@ -142,7 +142,7 @@ export default function ModelLimits({ model, trafficProfile }) {
             {modelMeta.source.label}
           </a>
           <p className="text-xs font-sans text-zinc-600 mt-2">
-            Catalog facts verified against provider docs on July 12, 2026. ET timing windows remain inferred.
+            Catalog facts verified against provider docs on July 19, 2026. ET timing windows remain inferred.
           </p>
         </div>
       </div>
